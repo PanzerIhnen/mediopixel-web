@@ -7,8 +7,12 @@ Add-Type -AssemblyName System.Drawing
 
 $background = [System.Drawing.Color]::FromArgb(11, 12, 16)
 $foreground = [System.Drawing.Color]::FromArgb(242, 244, 248)
-$muted = [System.Drawing.Color]::FromArgb(154, 161, 174)
-$accent = [System.Drawing.Color]::FromArgb(77, 124, 254)
+$bands = @(
+    [System.Drawing.Color]::FromArgb(77, 124, 254),
+    [System.Drawing.Color]::FromArgb(139, 108, 255),
+    [System.Drawing.Color]::FromArgb(255, 106, 85),
+    [System.Drawing.Color]::FromArgb(184, 240, 58)
+)
 
 $jpegCodec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' }
 
@@ -41,11 +45,20 @@ function Export-Resized([string]$InputPath, [string]$OutputPath, [int]$Width, [i
 
 function Draw-Mark([System.Drawing.Graphics]$Graphics, [single]$X, [single]$Y, [single]$Size) {
     $unit = $Size / 32
+    for ($band = 0; $band -lt $bands.Count; $band++) {
+        $brush = New-Object System.Drawing.SolidBrush $bands[$band]
+        $Graphics.FillRectangle($brush, $X, $Y + $band * 8 * $unit, 14 * $unit, 8 * $unit)
+        $brush.Dispose()
+    }
+
     $pen = New-Object System.Drawing.Pen $foreground, (4 * $unit)
-    $Graphics.DrawRectangle($pen, $X + 2 * $unit, $Y + 2 * $unit, 28 * $unit, 28 * $unit)
-    $brush = New-Object System.Drawing.SolidBrush $accent
-    $Graphics.FillRectangle($brush, $X, $Y, 16 * $unit, $Size)
-    $brush.Dispose()
+    $bracket = [System.Drawing.PointF[]]@(
+        (New-Object System.Drawing.PointF ($X + 18 * $unit), ($Y + 2 * $unit)),
+        (New-Object System.Drawing.PointF ($X + 30 * $unit), ($Y + 2 * $unit)),
+        (New-Object System.Drawing.PointF ($X + 30 * $unit), ($Y + 30 * $unit)),
+        (New-Object System.Drawing.PointF ($X + 18 * $unit), ($Y + 30 * $unit))
+    )
+    $Graphics.DrawLines($pen, $bracket)
     $pen.Dispose()
 }
 
@@ -61,33 +74,46 @@ function Export-Icon([string]$OutputPath, [int]$Size) {
     $bitmap.Dispose()
 }
 
+function Export-Favicon([string]$PngPath, [string]$OutputPath, [int]$Size) {
+    $png = [IO.File]::ReadAllBytes($PngPath)
+    $stream = New-Object IO.MemoryStream
+    $writer = New-Object IO.BinaryWriter $stream
+    $writer.Write([uint16]0)
+    $writer.Write([uint16]1)
+    $writer.Write([uint16]1)
+    $writer.Write([byte]$Size)
+    $writer.Write([byte]$Size)
+    $writer.Write([byte]0)
+    $writer.Write([byte]0)
+    $writer.Write([uint16]1)
+    $writer.Write([uint16]32)
+    $writer.Write([uint32]$png.Length)
+    $writer.Write([uint32]22)
+    $writer.Write($png)
+    $writer.Flush()
+    [IO.File]::WriteAllBytes($OutputPath, $stream.ToArray())
+    $writer.Dispose()
+}
+
+# GDI+ cannot load the site's woff2 fonts, so the card is an HTML page rendered by headless Edge.
 function Export-SocialCard([string]$OutputPath) {
-    $installed = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
-    $fontName = 'Consolas'
-    if ($installed -contains 'Cascadia Mono') {
-        $fontName = 'Cascadia Mono'
+    $edge = @(
+        (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'),
+        (Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe')
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $edge) {
+        Write-Warning 'Microsoft Edge not found; og.png was not regenerated.'
+        return
     }
 
-    $bitmap = New-Object System.Drawing.Bitmap 1200, 630
-    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-    $graphics.Clear($background)
-    $graphics.TextRenderingHint = 'AntiAlias'
-    Draw-Mark $graphics 150 235 160
-
-    $titleFont = New-Object System.Drawing.Font $fontName, 84, ([System.Drawing.FontStyle]::Bold), ([System.Drawing.GraphicsUnit]::Pixel)
-    $subtitleFont = New-Object System.Drawing.Font $fontName, 34, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
-    $titleBrush = New-Object System.Drawing.SolidBrush $foreground
-    $subtitleBrush = New-Object System.Drawing.SolidBrush $muted
-    $graphics.DrawString('medio pixel', $titleFont, $titleBrush, 360, 240)
-    $graphics.DrawString('indie games studio', $subtitleFont, $subtitleBrush, 366, 345)
-
-    $bitmap.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
-    $subtitleBrush.Dispose()
-    $titleBrush.Dispose()
-    $subtitleFont.Dispose()
-    $titleFont.Dispose()
-    $graphics.Dispose()
-    $bitmap.Dispose()
+    $page = (New-Object Uri (Resolve-Path (Join-Path $PSScriptRoot 'social-card.html')).Path).AbsoluteUri
+    $profile = Join-Path $env:TEMP 'mediopixel-social-card'
+    $arguments = @(
+        '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1',
+        '--window-size=1200,630', '--virtual-time-budget=3000',
+        "--user-data-dir=`"$profile`"", "--screenshot=`"$OutputPath`"", $page
+    )
+    Start-Process -FilePath $edge -ArgumentList $arguments -Wait -WindowStyle Hidden
 }
 
 $Source = (Resolve-Path $Source).Path
@@ -105,6 +131,7 @@ Export-Resized (Join-Path $Source 'popout_icon_512px.jpg') (Join-Path $Target 'p
 
 Export-Icon (Join-Path $Target 'icon-48.png') 48
 Export-Icon (Join-Path $Target 'apple-touch-icon.png') 180
+Export-Favicon (Join-Path $Target 'icon-48.png') (Join-Path $Target '..\..\favicon.ico') 48
 Export-SocialCard (Join-Path $Target 'og.png')
 
 Get-ChildItem $Target -Recurse -File | ForEach-Object { '{0,7:N0} KB  {1}' -f ($_.Length / 1KB), $_.FullName.Substring($Target.Length + 1) }

@@ -20,6 +20,9 @@
   <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/img/icon-48.png" sizes="48x48" type="image/png">
   <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+  <link rel="preload" href="../assets/fonts/sora-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script src="../assets/js/accent.js"></script>
   <link rel="stylesheet" href="../assets/css/site.css">
 </head>
 <body>
@@ -28,7 +31,7 @@
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="./" aria-label="Medio Pixel, inicio">
-        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="4"/><rect class="mark-half" width="16" height="32"/></svg>
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2H30V30H18" fill="none" stroke="currentColor" stroke-width="4"/><rect class="mark-half" width="14" height="32"/></svg>
         medio pixel
       </a>
       <nav class="site-nav" aria-label="Principal">
@@ -44,10 +47,11 @@
     <section class="hero">
       <div class="wrap">
         <div>
+          <p class="kicker">estudio indie de videojuegos</p>
           <h1>Medio píxel y mucha pasión.</h1>
           <p>Medio Pixel es un estudio indie de una sola persona que crea juegos y apps para móvil, pequeños y muy cuidados.</p>
         </div>
-        <svg class="hero-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" fill="none" stroke="currentColor" stroke-width="4"/><rect class="mark-half" width="16" height="32"/></svg>
+        <button class="hero-mark-button" type="button" aria-label="Cambiar de color"><svg class="hero-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2H30V30H18" fill="none" stroke="currentColor" stroke-width="4"/><rect class="mark-half" width="14" height="32"/></svg></button>
       </div>
     </section>
 

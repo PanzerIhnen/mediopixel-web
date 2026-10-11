@@ -1,0 +1,4 @@
+Sora: SIL Open Font License 1.1, https://github.com/sora-xor/sora-font
+JetBrains Mono: SIL Open Font License 1.1, https://github.com/JetBrains/JetBrainsMono
+
+License text: https://openfontlicense.org/open-font-license-official-text/

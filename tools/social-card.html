@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Medio Pixel social card</title>
+  <style>
+    @font-face {
+      font-family: "Sora";
+      src: url("../docs/assets/fonts/sora-latin.woff2") format("woff2");
+      font-weight: 400 800;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("../docs/assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+      font-weight: 400 700;
+    }
+
+    html,
+    body {
+      width: 1200px;
+      height: 630px;
+      margin: 0;
+      overflow: hidden;
+      background: #0b0c10;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 44px;
+      color: #f2f4f8;
+    }
+
+    svg {
+      width: 168px;
+      height: 168px;
+    }
+
+    .name {
+      font: 700 92px/1 "Sora", sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    .tagline {
+      margin-top: 22px;
+      color: #9aa1ae;
+      font: 500 34px/1 "JetBrains Mono", monospace;
+    }
+  </style>
+</head>
+<body>
+  <svg viewBox="0 0 32 32" shape-rendering="crispEdges"><rect width="14" height="8" fill="#4d7cfe"/><rect y="8" width="14" height="8" fill="#8b6cff"/><rect y="16" width="14" height="8" fill="#ff6a55"/><rect y="24" width="14" height="8" fill="#b8f03a"/><path d="M18 2H30V30H18" fill="none" stroke="#f2f4f8" stroke-width="4"/></svg>
+  <div>
+    <div class="name">medio pixel</div>
+    <div class="tagline">indie games studio</div>
+  </div>
+</body>
+</html>
