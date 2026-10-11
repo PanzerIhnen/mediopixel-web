@@ -95,25 +95,33 @@ function Export-Favicon([string]$PngPath, [string]$OutputPath, [int]$Size) {
     $writer.Dispose()
 }
 
-# GDI+ cannot load the site's woff2 fonts, so the card is an HTML page rendered by headless Edge.
-function Export-SocialCard([string]$OutputPath) {
+# GDI+ has no blend modes, masks or woff2 support, so these images are HTML pages rendered by headless Edge.
+function Export-Page([string]$PageName, [string]$OutputPath, [int]$Width, [int]$Height) {
     $edge = @(
         (Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'),
         (Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe')
     ) | Where-Object { Test-Path $_ } | Select-Object -First 1
     if (-not $edge) {
-        Write-Warning 'Microsoft Edge not found; og.png was not regenerated.'
-        return
+        Write-Warning "Microsoft Edge not found; $PageName was not rendered."
+        return $false
     }
 
-    $page = (New-Object Uri (Resolve-Path (Join-Path $PSScriptRoot 'social-card.html')).Path).AbsoluteUri
-    $profile = Join-Path $env:TEMP 'mediopixel-social-card'
+    $page = (New-Object Uri (Resolve-Path (Join-Path $PSScriptRoot $PageName)).Path).AbsoluteUri
+    $profile = Join-Path $env:TEMP 'mediopixel-export'
     $arguments = @(
         '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1',
-        '--window-size=1200,630', '--virtual-time-budget=3000',
+        "--window-size=$Width,$Height", '--virtual-time-budget=4000',
         "--user-data-dir=`"$profile`"", "--screenshot=`"$OutputPath`"", $page
     )
     Start-Process -FilePath $edge -ArgumentList $arguments -Wait -WindowStyle Hidden
+    return $true
+}
+
+function Export-Banner([string]$OutputPath) {
+    $rendered = Join-Path $env:TEMP 'mediopixel-banner.png'
+    if (Export-Page 'banner.html' $rendered 2048 1000) {
+        Export-Resized $rendered $OutputPath 2048 1000
+    }
 }
 
 $Source = (Resolve-Path $Source).Path
@@ -126,12 +134,12 @@ for ($index = 0; $index -lt $shots.Count; $index++) {
     Export-Resized $inputPath (Join-Path $Target "pop-out\shot-$($index + 1).jpg") 540 1200
 }
 
-Copy-Item (Join-Path $Source 'baner2.jpg') (Join-Path $Target 'pop-out\banner.jpg') -Force
+Export-Banner (Join-Path $Target 'pop-out\banner.jpg')
 Export-Resized (Join-Path $Source 'popout_icon_512px.jpg') (Join-Path $Target 'pop-out\icon.jpg') 256 256
 
 Export-Icon (Join-Path $Target 'icon-48.png') 48
 Export-Icon (Join-Path $Target 'apple-touch-icon.png') 180
 Export-Favicon (Join-Path $Target 'icon-48.png') (Join-Path $Target '..\..\favicon.ico') 48
-Export-SocialCard (Join-Path $Target 'og.png')
+Export-Page 'social-card.html' (Join-Path $Target 'og.png') 1200 630 | Out-Null
 
 Get-ChildItem $Target -Recurse -File | ForEach-Object { '{0,7:N0} KB  {1}' -f ($_.Length / 1KB), $_.FullName.Substring($Target.Length + 1) }

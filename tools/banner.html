@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pop Out banner</title>
+  <style>
+    html,
+    body {
+      width: 2048px;
+      height: 1000px;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .logo,
+    .ring {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      mix-blend-mode: screen;
+      filter: url(#black-point);
+    }
+
+    .logo {
+      left: 0;
+      width: 1120px;
+      -webkit-mask-image: radial-gradient(ellipse closest-side, #000 84%, transparent 100%);
+      mask-image: radial-gradient(ellipse closest-side, #000 84%, transparent 100%);
+    }
+
+    .ring {
+      right: 80px;
+      width: 900px;
+      height: 900px;
+      background: url("../Material/screenshots/popout_ss7.png") no-repeat;
+      background-size: 1004px auto;
+      background-position: -52px -522px;
+      -webkit-mask-image: radial-gradient(circle closest-side, #000 90%, transparent 100%);
+      mask-image: radial-gradient(circle closest-side, #000 90%, transparent 100%);
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <filter id="black-point" color-interpolation-filters="sRGB">
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="1.12" intercept="-0.11"/>
+        <feFuncG type="linear" slope="1.12" intercept="-0.11"/>
+        <feFuncB type="linear" slope="1.12" intercept="-0.11"/>
+      </feComponentTransfer>
+    </filter>
+  </svg>
+  <img class="logo" src="../Material/logo.png" alt="">
+  <div class="ring"></div>
+</body>
+</html>
