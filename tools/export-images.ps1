@@ -62,11 +62,13 @@ function Draw-Mark([System.Drawing.Graphics]$Graphics, [single]$X, [single]$Y, [
     $pen.Dispose()
 }
 
-function Export-Icon([string]$OutputPath, [int]$Size) {
+function Export-Icon([string]$OutputPath, [int]$Size, [single]$MarkRatio = 0.6) {
     $bitmap = New-Object System.Drawing.Bitmap $Size, $Size
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     $graphics.Clear($background)
-    $markSize = [math]::Round($Size * 0.6)
+
+    # A multiple of 32 keeps every band and the bracket on whole pixels.
+    $markSize = [math]::Max(1, [math]::Round($Size * $MarkRatio / 32)) * 32
     $offset = ($Size - $markSize) / 2
     Draw-Mark $graphics $offset $offset $markSize
     $bitmap.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
@@ -141,5 +143,10 @@ Export-Icon (Join-Path $Target 'icon-48.png') 48
 Export-Icon (Join-Path $Target 'apple-touch-icon.png') 180
 Export-Favicon (Join-Path $Target 'icon-48.png') (Join-Path $Target '..\..\favicon.ico') 48
 Export-Page 'social-card.html' (Join-Path $Target 'og.png') 1200 630 | Out-Null
+
+$brand = Join-Path $PSScriptRoot '..\brand'
+New-Item -ItemType Directory -Force $brand | Out-Null
+Export-Icon (Join-Path $brand 'avatar.png') 1080 0.5
+Export-Page 'profile-banner.html' (Join-Path (Resolve-Path $brand).Path 'banner.png') 3000 1000 | Out-Null
 
 Get-ChildItem $Target -Recurse -File | ForEach-Object { '{0,7:N0} KB  {1}' -f ($_.Length / 1KB), $_.FullName.Substring($Target.Length + 1) }

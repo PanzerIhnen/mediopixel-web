@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Medio Pixel profile banner</title>
+  <style>
+    @font-face {
+      font-family: "Sora";
+      src: url("../docs/assets/fonts/sora-latin.woff2") format("woff2");
+      font-weight: 400 800;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("../docs/assets/fonts/jetbrains-mono-latin.woff2") format("woff2");
+      font-weight: 400 700;
+    }
+
+    html,
+    body {
+      width: 3000px;
+      height: 1000px;
+      margin: 0;
+      overflow: hidden;
+      background: #0b0c10;
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      color: #f2f4f8;
+    }
+
+    .text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 56px;
+      padding-left: 240px;
+    }
+
+    .name {
+      font: 700 250px/1 "Sora", sans-serif;
+      letter-spacing: -0.01em;
+    }
+
+    .tagline {
+      color: #9aa1ae;
+      font: 500 84px/1 "JetBrains Mono", monospace;
+    }
+
+    .bands {
+      display: grid;
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+    }
+  </style>
+</head>
+<body>
+  <div class="text">
+    <div class="name">medio pixel</div>
+    <div class="tagline">indie games studio</div>
+  </div>
+  <div class="bands">
+    <div style="background: #4d7cfe"></div>
+    <div style="background: #8b6cff"></div>
+    <div style="background: #ff6a55"></div>
+    <div style="background: #b8f03a"></div>
+  </div>
+</body>
+</html>
