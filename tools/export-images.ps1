@@ -119,6 +119,23 @@ function Export-Page([string]$PageName, [string]$OutputPath, [int]$Width, [int]$
     return $true
 }
 
+# Google Play rejects header images with an alpha channel, and Edge screenshots always have one.
+function Export-OpaquePage([string]$PageName, [string]$OutputPath, [int]$Width, [int]$Height) {
+    $rendered = Join-Path $env:TEMP 'mediopixel-opaque.png'
+    if (-not (Export-Page $PageName $rendered $Width $Height)) {
+        return
+    }
+
+    $image = [System.Drawing.Image]::FromFile($rendered)
+    $bitmap = New-Object System.Drawing.Bitmap $Width, $Height, ([System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    $graphics.DrawImage($image, 0, 0, $Width, $Height)
+    $bitmap.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $graphics.Dispose()
+    $bitmap.Dispose()
+    $image.Dispose()
+}
+
 function Export-Banner([string]$OutputPath) {
     $rendered = Join-Path $env:TEMP 'mediopixel-banner.png'
     if (Export-Page 'banner.html' $rendered 2048 1000) {
@@ -148,5 +165,7 @@ $brand = Join-Path $PSScriptRoot '..\brand'
 New-Item -ItemType Directory -Force $brand | Out-Null
 Export-Icon (Join-Path $brand 'avatar.png') 1080 0.5
 Export-Page 'profile-banner.html' (Join-Path (Resolve-Path $brand).Path 'banner.png') 3000 1000 | Out-Null
+Export-Icon (Join-Path $brand 'play-developer-icon.png') 512 0.5
+Export-OpaquePage 'play-header.html' (Join-Path (Resolve-Path $brand).Path 'play-header.png') 4096 2304
 
 Get-ChildItem $Target -Recurse -File | ForEach-Object { '{0,7:N0} KB  {1}' -f ($_.Length / 1KB), $_.FullName.Substring($Target.Length + 1) }
